@@ -17,7 +17,7 @@ def parse_args():
     return parser.parse_args()
 
 def calculate_fps(model, test_loader, device, warmup=10):
-    """计算FPS"""
+    """Calculate FPS"""
     model.eval()
     # Warmup
     for i, (imgs, _) in enumerate(test_loader):
@@ -27,7 +27,7 @@ def calculate_fps(model, test_loader, device, warmup=10):
         with torch.no_grad():
             model(imgs)
     
-    # 计时
+    # timing
     start = torch.cuda.Event(enable_timing=True)
     end = torch.cuda.Event(enable_timing=True)
     total_imgs = 0
@@ -47,15 +47,15 @@ def main():
     args = parse_args()
     logger = setup_logger('test', 'test_logs.txt')
 
-    # 加载模型
+    # Load model
     model = LungNet(pretrained=False).to(args.device)
     model.load_state_dict(torch.load(args.weight_path, map_location=args.device))
     model.eval()
 
-    # 加载数据
+    # Load data
     test_loader = get_dataloader(args.data_path, args.dataset, 'test', batch_size=8)
 
-    # 计算评估指标
+    # Calculate evaluation metrics
     logger.info('Calculating evaluation metrics...')
     map_05 = calculate_map(model, test_loader, args.device, iou_thres=0.5)
     map_05_95 = calculate_map(model, test_loader, args.device, iou_thres=np.arange(0.5, 1.0, 0.05))
@@ -64,7 +64,7 @@ def main():
     params = get_model_params(model)
     flops = get_model_flops(model, input_size=(1, 1, 330, 330))
 
-    # 输出结果
+    # Output Result
     logger.info(f'===== Test Results =====')
     logger.info(f'mAP@0.5: {map_05:.4f}')
     logger.info(f'mAP@0.5:0.95: {map_05_95:.4f}')
