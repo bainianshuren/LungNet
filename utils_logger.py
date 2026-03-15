@@ -2,7 +2,7 @@ import logging
 import os
 
 def setup_logger(name, log_file, level=logging.INFO):
-    """设置日志记录器"""
+    """Set up the logger"""
     os.makedirs(os.path.dirname(log_file) if os.path.dirname(log_file) else '.', exist_ok=True)
     
     formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
