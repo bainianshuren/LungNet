@@ -16,41 +16,39 @@ def parse_args():
     return parser.parse_args()
 
 def load_dicom(path):
-    """加载DICOM文件并转换为numpy数组"""
+    """Load DICOM files and convert them to numpy arrays"""
     dicom = pydicom.dcmread(path)
     img = dicom.pixel_array
-    # 归一化到[0,1]
+    # Normalize to [0,1]
     img = (img - img.min()) / (img.max() - img.min() + 1e-8)
     return img
 
 def preprocess_luna16(raw_path, save_path):
-    """预处理LUNA16数据集"""
-    # 创建保存目录
+    """Preprocess the LUNA16 dataset"""
+    # Create a save directory
     os.makedirs(os.path.join(save_path, 'images/train'), exist_ok=True)
     os.makedirs(os.path.join(save_path, 'images/test'), exist_ok=True)
     os.makedirs(os.path.join(save_path, 'labels/train'), exist_ok=True)
     os.makedirs(os.path.join(save_path, 'labels/test'), exist_ok=True)
 
-    # 遍历原始数据（简化逻辑，需根据实际LUNA16结构调整）
+    # Traverse the original data (simplified logic, need to adjust according to the actual LUNA16 structure)
     dicom_paths = [os.path.join(raw_path, f) for f in os.listdir(raw_path) if f.endswith('.dcm')]
     train_paths, test_paths = train_test_split(dicom_paths, test_size=0.3, random_state=42)
 
-    # 处理训练集
+    # Process the training set
     for idx, path in tqdm(enumerate(train_paths), desc='Processing LUNA16 Train'):
         img = load_dicom(path)
-        # 裁剪到330x330
         img = cv2.resize(img, (330, 330))
-        # 保存图像
         img_save_path = os.path.join(save_path, f'images/train/{idx}.png')
         cv2.imwrite(img_save_path, img * 255)
-        # 标签处理（需根据实际标注文件生成，此处为占位）
+        # Tag processing
         label_save_path = os.path.join(save_path, f'labels/train/{idx}.txt')
-        # 标注格式：xmin ymin xmax ymax class
-        # 示例：0 0 50 50 0
+        # annotation format：xmin ymin xmax ymax class
+        # example：0 0 50 50 0
         with open(label_save_path, 'w') as f:
-            pass  # 替换为实际标注逻辑
+            pass  # Replace with actual annotation logic
 
-    # 处理测试集（同训练集逻辑）
+    # Process the test set (using the same logic as the training set)
     for idx, path in tqdm(enumerate(test_paths), desc='Processing LUNA16 Test'):
         img = load_dicom(path)
         img = cv2.resize(img, (330, 330))
@@ -61,8 +59,8 @@ def preprocess_luna16(raw_path, save_path):
             pass
 
 def preprocess_lung_pet_ct(raw_path, save_path):
-    """预处理Lung-PET-CT-Dx数据集"""
-    # 创建保存目录
+    """preprocessing Lung-PET-CT-Dx"""
+    # Create a save directory
     os.makedirs(os.path.join(save_path, 'ct/train'), exist_ok=True)
     os.makedirs(os.path.join(save_path, 'ct/test'), exist_ok=True)
     os.makedirs(os.path.join(save_path, 'pet/train'), exist_ok=True)
@@ -70,25 +68,25 @@ def preprocess_lung_pet_ct(raw_path, save_path):
     os.makedirs(os.path.join(save_path, 'labels/train'), exist_ok=True)
     os.makedirs(os.path.join(save_path, 'labels/test'), exist_ok=True)
 
-    # 遍历原始数据（简化逻辑）
+    # Traverse the original data (simplified logic)
     ct_paths = [os.path.join(raw_path, 'CT', f) for f in os.listdir(os.path.join(raw_path, 'CT')) if f.endswith('.dcm')]
     pet_paths = [os.path.join(raw_path, 'PET', f) for f in os.listdir(os.path.join(raw_path, 'PET')) if f.endswith('.dcm')]
     train_ct, test_ct = train_test_split(ct_paths, test_size=0.3, random_state=42)
     train_pet, test_pet = train_test_split(pet_paths, test_size=0.3, random_state=42)
 
-    # 处理CT训练集（512x512）
+    # Process CT training set (512x512)
     for idx, path in tqdm(enumerate(train_ct), desc='Processing PET-CT CT Train'):
         img = load_dicom(path)
         img = cv2.resize(img, (512, 512))
         cv2.imwrite(os.path.join(save_path, f'ct/train/{idx}.png'), img * 255)
 
-    # 处理PET训练集（200x200）
+    # Process PET training set (200x200)
     for idx, path in tqdm(enumerate(train_pet), desc='Processing PET-CT PET Train'):
         img = load_dicom(path)
         img = cv2.resize(img, (200, 200))
         cv2.imwrite(os.path.join(save_path, f'pet/train/{idx}.png'), img * 255)
 
-    # 处理测试集（同训练集）
+    # Process the test set (same as the training set)
     for idx, path in enumerate(test_ct):
         img = load_dicom(path)
         img = cv2.resize(img, (512, 512))
@@ -98,9 +96,7 @@ def preprocess_lung_pet_ct(raw_path, save_path):
         img = cv2.resize(img, (200, 200))
         cv2.imwrite(os.path.join(save_path, f'pet/test/{idx}.png'), img * 255)
 
-    # 标签匹配（需根据实际标注文件实现）
-    # ...
-
+    # Tag matching (needs to be implemented based on the actual annotation file)
 def main():
     args = parse_args()
     if args.dataset == 'LUNA16':
