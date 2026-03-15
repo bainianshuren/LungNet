@@ -4,7 +4,7 @@ from tqdm import tqdm
 from thop import profile
 
 def calculate_iou(box1, box2):
-    """计算IoU"""
+    """Calculate IoU"""
     x1 = max(box1[0], box2[0])
     y1 = max(box1[1], box2[1])
     x2 = min(box1[2], box2[2])
@@ -18,7 +18,7 @@ def calculate_iou(box1, box2):
     return inter_area / union_area if union_area > 0 else 0
 
 def calculate_map(model, dataloader, device, iou_thres=0.5):
-    """计算mAP"""
+    """Calculate mAP"""
     model.eval()
     all_preds = []
     all_targets = []
@@ -28,7 +28,7 @@ def calculate_map(model, dataloader, device, iou_thres=0.5):
             imgs = imgs.to(device)
             outputs = model(imgs)
 
-            # 解析预测框和真实框
+            # Parse prediction boxes and ground truth boxes
             for i in range(len(imgs)):
                 pred_boxes = outputs[i].cpu().numpy() if len(outputs) > i else []
                 target_boxes = boxes[i].cpu().numpy() if len(boxes) > i else []
@@ -36,7 +36,7 @@ def calculate_map(model, dataloader, device, iou_thres=0.5):
                 all_preds.append(pred_boxes)
                 all_targets.append(target_boxes)
 
-    # 计算mAP（简化实现，可替换为COCO官方实现）
+    # Calculate mAP 
     aps = []
     for preds, targets in zip(all_preds, all_targets):
         if len(targets) == 0:
@@ -45,7 +45,7 @@ def calculate_map(model, dataloader, device, iou_thres=0.5):
             aps.append(0)
             continue
 
-        # 按置信度排序
+        # Sort by Confidence
         preds = sorted(preds, key=lambda x: x[4], reverse=True)
         tp = np.zeros(len(preds))
         fp = np.zeros(len(preds))
@@ -68,7 +68,7 @@ def calculate_map(model, dataloader, device, iou_thres=0.5):
             else:
                 fp[i] = 1
 
-        # 计算AP
+        # Calculate AP
         tp_cumsum = np.cumsum(tp)
         fp_cumsum = np.cumsum(fp)
         recalls = tp_cumsum / len(targets)
@@ -79,7 +79,7 @@ def calculate_map(model, dataloader, device, iou_thres=0.5):
     return np.mean(aps) if aps else 0
 
 def calculate_recall(model, dataloader, device, iou_thres=0.5):
-    """计算召回率"""
+    """Calculate Recall"""
     model.eval()
     total_targets = 0
     total_matched = 0
@@ -116,12 +116,12 @@ def calculate_recall(model, dataloader, device, iou_thres=0.5):
     return total_matched / (total_targets + 1e-8) if total_targets > 0 else 0
 
 def get_model_params(model):
-    """计算模型参数量（M）"""
+    """Calculate the number of model parameters（M）"""
     total_params = sum(p.numel() for p in model.parameters())
     return total_params / 1e6
 
 def get_model_flops(model, input_size):
-    """计算模型GFLOPs"""
+    """computational model GFLOPs"""
     input_tensor = torch.randn(input_size).to(next(model.parameters()).device)
     flops, _ = profile(model, inputs=(input_tensor,))
     return flops / 1e9
