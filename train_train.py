@@ -23,27 +23,27 @@ def main():
     args = parse_args()
     logger = setup_logger('train', 'train_logs.txt')
 
-    # 1. 初始化模型
+    # 1. Initialize model
     model = LungNet(pretrained=True).to(args.device)
     model.train()
 
-    # 2. 数据加载
+    # 2. Data Loading
     train_loader = get_dataloader(args.data_path, args.dataset, 'train', args.batch_size)
     val_loader = get_dataloader(args.data_path, args.dataset, 'test', args.batch_size)
 
-    # 3. 优化器与损失函数
+    # 3. Optimizer and Loss Function
     optimizer = optim.Adam(model.parameters(), lr=args.lr)
     criterion = nn.CrossEntropyLoss()
     scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=15, gamma=0.1)  # 15epoch后lr降为1e-5
 
-    # 4. 训练循环
+    # 4. training loop
     best_map = 0.0
     early_stop_count = 0
     for epoch in range(args.epochs):
         logger.info(f'Epoch [{epoch+1}/{args.epochs}]')
         train_loss = 0.0
 
-        # 训练步
+    
         pbar = tqdm(train_loader, desc=f'Training Epoch {epoch+1}')
         for imgs, boxes in pbar:
             imgs = imgs.to(args.device)
@@ -51,7 +51,7 @@ def main():
 
             optimizer.zero_grad()
             outputs = model(imgs)
-            # 计算损失（适配YOLOv11损失逻辑）
+            # Calculate Loss (Adapt to YOLOv11 Loss Logic)
             loss = model.train_step((imgs, boxes), args.device)['loss']
             loss.backward()
             optimizer.step()
@@ -59,16 +59,16 @@ def main():
             train_loss += loss.item()
             pbar.set_postfix({'loss': train_loss / (len(pbar))})
 
-        # 学习率调度
+        # learning rate scheduling
         scheduler.step()
 
-        # 验证步
+        # Verification
         model.eval()
         with torch.no_grad():
             val_map = calculate_map(model, val_loader, args.device)
         logger.info(f'Validation mAP@0.5: {val_map:.4f}')
 
-        # 保存最优权重
+        # Save Optimal Weights
         if val_map > best_map:
             best_map = val_map
             torch.save(model.state_dict(), 'weights/best_LungNet.pth')
