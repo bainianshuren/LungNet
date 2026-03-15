@@ -15,7 +15,7 @@ def parse_args():
     return parser.parse_args()
 
 def load_image(img_path):
-    """加载并预处理图像"""
+    """Load and preprocess images"""
     img = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
     img = cv2.resize(img, (330, 330))
     img = (img - img.min()) / (img.max() - img.min() + 1e-8)
@@ -26,35 +26,35 @@ def main():
     args = parse_args()
     os.makedirs(args.save_path, exist_ok=True)
 
-    # 加载模型
+    # Load model
     model = LungNet(pretrained=False).to(args.device)
     model.load_state_dict(torch.load(args.weight_path, map_location=args.device))
     model.eval()
 
-    # 处理单张/批量图像
+    # Process single/batch images
     if os.path.isdir(args.img_path):
         img_paths = [os.path.join(args.img_path, f) for f in os.listdir(args.img_path) if f.endswith(('.png', '.jpg', '.jpeg'))]
     else:
         img_paths = [args.img_path]
 
     for img_path in img_paths:
-        # 加载图像
+        # Load Image
         img_tensor, img_vis = load_image(img_path)
         img_tensor = img_tensor.to(args.device)
 
-        # 推理
+        # inference
         with torch.no_grad():
             outputs = model(img_tensor)
-            # 解析输出（适配YOLOv11输出格式）
+            # Parse output (compatible with YOLOv11 output format)
             boxes = outputs[0].cpu().numpy()  # [xmin, ymin, xmax, ymax, conf, cls]
 
-        # 可视化
+        # Visualization
         for box in boxes:
-            if box[4] > 0.5:  # 置信度阈值
+            if box[4] > 0.5:  # confidence threshold
                 xmin, ymin, xmax, ymax, conf, cls = box
                 img_vis = draw_bbox(img_vis, int(xmin), int(ymin), int(xmax), int(ymax), f'Nodule {conf:.2f}')
 
-        # 保存结果
+        # Save results
         save_name = os.path.basename(img_path)
         cv2.imwrite(os.path.join(args.save_path, save_name), img_vis)
         print(f'Inference result saved to {os.path.join(args.save_path, save_name)}')
