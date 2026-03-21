@@ -34,7 +34,7 @@ def main():
     # 3. Optimizer and Loss Function
     optimizer = optim.Adam(model.parameters(), lr=args.lr)
     criterion = nn.CrossEntropyLoss()
-    scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=15, gamma=0.1)  # 15epoch后lr降为1e-5
+    scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=15, gamma=0.1)  # After 15 epochs, the learning rate (lr) is reduced to 1e-5
 
     # 4. training loop
     best_map = 0.0
