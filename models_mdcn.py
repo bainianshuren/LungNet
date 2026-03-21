@@ -41,7 +41,7 @@ class MDCN(nn.Module):
         branch_outs = []
         for i, conv in enumerate(self.conv_branches):
             out = conv(x)  # [B, C, H, W]
-            branch_outs.append(out * weights[:, i])  # 加权
+            branch_outs.append(out * weights[:, i])  # weighted
 
         # Integration
         concat_out = torch.cat(branch_outs, dim=1)
