@@ -31,13 +31,13 @@ class DWA_Conv(nn.Module):
 
     def forward(self, x):
         # Predictive Branch Weight
-        weights = self.weight_pred(x)  # [B, N, H, W] N为空洞率数量
+        weights = self.weight_pred(x)  # [B, N, H, W] N is the number of dilation rates
 
         # Dilated Convolution Calculation + Weighted Weighting
         out = 0
         for i, conv in enumerate(self.atrous_branches):
             branch_out = conv(x)  # [B, C, H, W]
-            out += branch_out * weights[:, i:i+1, :, :]  # 空间维度加权
+            out += branch_out * weights[:, i:i+1, :, :]  # Spatial Dimension Weighting
 
         out = self.bn(out)
         out = self.act(out)
