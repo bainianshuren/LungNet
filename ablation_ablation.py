@@ -23,26 +23,27 @@ def parse_args():
     return parser.parse_args()
 
 def build_ablation_model(modules, device):
-    """Construct ablation experiment model"""
-    # Basic YOLOv11 Model
+    """构建消融实验模型"""
+    # 基础YOLOv11模型
     model = LungNet(pretrained=True).to(device)
     
-    # Replace/Add according to the specified module
+    # 根据指定模块替换/添加
     if 'MDCN' not in modules:
-        # Remove MDCN and restore the original convolution
+        # 移除MDCN，恢复原始卷积
         for name, module in model.backbone.named_modules():
             if isinstance(module, MDCN):
                 orig_conv = torch.nn.Conv2d(module.in_channels, module.out_channels, kernel_size=3, padding=1)
                 setattr(model.backbone, name, orig_conv)
     
     if 'DWA-Conv' not in modules:
-        # Remove DWA-Conv and restore the original convolution
+        # 移除DWA-Conv，恢复原始卷积
         for name, module in model.neck.named_modules():
             if isinstance(module, DWA_Conv):
                 orig_conv = torch.nn.Conv2d(module.in_channels, module.out_channels, kernel_size=3, padding=1)
                 setattr(model.neck, name, orig_conv)
     
     if 'AAF-Net' not in modules:
+        # 移除AAF-Net
         model.aaf_net = torch.nn.Identity()
     
     return model
@@ -52,19 +53,19 @@ def main():
     logger = setup_logger('ablation', 'ablation_logs.txt')
     logger.info(f'Ablation experiment with modules: {args.modules}')
 
-    # Construct ablation models
+    # 构建消融模型
     model = build_ablation_model(args.modules, args.device)
     model.train()
 
-    # Data loading
+    # 数据加载
     train_loader = get_dataloader(args.data_path, args.dataset, 'train', args.batch_size)
     val_loader = get_dataloader(args.data_path, args.dataset, 'test', args.batch_size)
 
-    # optimizer
+    # 优化器
     optimizer = optim.Adam(model.parameters(), lr=args.lr)
     scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=15, gamma=0.1)
 
-    # training
+    # 训练
     best_map = 0.0
     for epoch in range(args.epochs):
         logger.info(f'Epoch [{epoch+1}/{args.epochs}]')
@@ -85,7 +86,7 @@ def main():
 
         scheduler.step()
 
-        # Verification
+        # 验证
         model.eval()
         with torch.no_grad():
             val_map = calculate_map(model, val_loader, args.device)

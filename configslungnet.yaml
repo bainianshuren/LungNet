@@ -1,0 +1,54 @@
+# Unified configuration file for LungNet training, testing, and ablation experiments.
+# All hyperparameters are consistent with Section 3.6.1 of the manuscript.
+
+model:
+  name: LungNet
+  backbone: YOLOv11n
+  mdcn:
+    kernel_sizes: [3, 5, 7]
+    use_depthwise: true
+    use_group_conv: true
+    bottleneck_ratio: 4
+  dwa_conv:
+    rates: [1, 2, 4]
+    channel_compress_ratio: 0.25
+  aaf_net:
+    in_channels: [64, 128, 256]
+    out_channels: 256
+    gating_init: 0.5
+
+data:
+  dataset: LUNA16                # Options: LUNA16 or Lung-PET-CT-Dx
+  root: ./data/processed
+  img_size: 330
+  batch_size: 8
+  num_workers: 4
+  augmentation:
+    horizontal_flip: 0.5
+    vertical_flip: 0.5
+    rotation: 15
+    brightness: 0.2
+    contrast: 0.2
+    crop_ratio: 0.9
+
+train:
+  epochs: 50
+  lr: 1.0e-4
+  lr_step: 15
+  lr_gamma: 0.1
+  optimizer: Adam
+  weight_decay: 1.0e-5
+  early_stop_patience: 5
+  seed: 42
+  seeds: [42, 123, 777]          # Multi-seed repeated experiments
+
+test:
+  iou_thres: 0.5
+  conf_thres: 0.5
+  batch_size: 1                  # Batch size for inference latency test
+
+ablation:
+  modules: [MDCN, DWA-Conv, AAF-Net]
+  single_modules: [MDCN, DWA-Conv, AAF-Net]
+  double_combinations: [[MDCN, DWA-Conv], [MDCN, AAF-Net], [DWA-Conv, AAF-Net]]
+  triple_combination: [MDCN, DWA-Conv, AAF-Net]

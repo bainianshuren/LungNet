@@ -1,0 +1,31 @@
+LungNet/
+├── models/
+│   ├── __init__.py
+│   ├── lungnet.py          # LungNet主模型（MDCN+DWA-Conv+AAF-Net）
+│   ├── mdcn.py             # 多维动态卷积模块
+│   ├── dwa_conv.py         # 动态权重分配空洞卷积
+│   └── aaf_net.py          # 解剖感知双路径融合网络
+├── data/
+│   ├── __init__.py
+│   ├── preprocess.py       # 数据集预处理脚本
+│   └── dataset.py          # 数据加载与增强
+├── train/
+│   ├── __init__.py
+│   └── train.py            # 模型训练脚本
+├── test/
+│   ├── __init__.py
+│   ├── test.py             # 模型测试脚本
+│   └── infer.py            # 模型推理可视化脚本
+├── ablation/
+│   ├── __init__.py
+│   └── ablation.py         # 消融实验脚本
+├── utils/
+│   ├── __init__.py
+│   ├── metrics.py          # 评估指标计算
+│   ├── logger.py           # 日志记录
+│   ├── visualization.py    # 结果可视化
+│   └── common.py           # 通用工具函数
+├── weights/                # 预训练权重（需自行放入best_LungNet.pth）
+├── requirements.txt        # 依赖库清单
+├── LICENSE                 # MIT许可证
+└── README.md               # 项目说明（已提供）
